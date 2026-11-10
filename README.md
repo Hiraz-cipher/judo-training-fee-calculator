@@ -25,7 +25,7 @@ weight category.
 
 ## Features
 - Choose a training plan, then calculate the monthly training fee
-- Add private coaching hours (capped at 20 a month)
+- Add private coaching hours, including fractional hours (validated from 0 to 20 a month)
 - Add competition entries for intermediate and elite athletes
 - Show the athlete's weight category
 
@@ -40,7 +40,17 @@ A beginner with 5 private coaching hours and no competitions:
 - Private coaching: £47.50
 - Total: £147.50
 
-## What I'd improve next
-- Check that the user types a number for weight, hours and competitions, so the program doesn't crash
-- Remove the weight-limit warning, since the category is calculated from the same weight and the warning can never trigger
-- Store the plan prices in a dictionary, so the code doesn't repeat the same checks
+## Input validation
+
+Invalid training plans are re-prompted. Weight must be positive and finite; competition entries must be non-negative whole numbers. Coaching hours must be finite and between 0 and 20. Invalid text, negative numbers, NaN and infinity are rejected without terminating the calculation.
+
+Monthly fees use a fixed four-week month. Prices are coursework scenario values in GBP, not current club pricing. The app automatically assigns a weight category; it does not compare weight against a separately selected competition category.
+
+## Next steps
+
+- Save athlete records and calculation history.
+- Add a graphical interface and exportable invoices.
+
+## Tests
+
+Run `python -m unittest discover -s tests -v` for fee calculations, category boundaries and invalid-input recovery.

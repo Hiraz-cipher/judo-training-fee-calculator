@@ -1,5 +1,7 @@
 # Simple Judo Training Calculator
 
+import math
+
 # Constants for pricing
 BEGINNER_WEEKLY = 25.00
 INTERMEDIATE_WEEKLY = 30.00
@@ -11,12 +13,11 @@ WEEKS_PER_MONTH = 4
 
 def get_training_fee(plan):
     """Calculate monthly training fee based on plan"""
-    if plan == "1":
-        return BEGINNER_WEEKLY * WEEKS_PER_MONTH
-    elif plan == "2":
-        return INTERMEDIATE_WEEKLY * WEEKS_PER_MONTH
-    else:
-        return ELITE_WEEKLY * WEEKS_PER_MONTH
+    weekly_prices = {"1": BEGINNER_WEEKLY, "2": INTERMEDIATE_WEEKLY, "3": ELITE_WEEKLY}
+    if plan not in weekly_prices:
+        raise ValueError("Training plan must be 1, 2 or 3.")
+    return weekly_prices[plan] * WEEKS_PER_MONTH
+
 
 
 def get_weight_category(weight):
@@ -33,6 +34,26 @@ def get_weight_category(weight):
         return "Light-Heavyweight"
     else:
         return "Heavyweight"
+
+
+def read_number(prompt, *, integer=False, minimum=0, maximum=None, exclusive_min=False):
+    """Keep asking until the value is finite and within the allowed range."""
+    while True:
+        try:
+            raw = input(prompt)
+            value = int(raw) if integer else float(raw)
+            if not math.isfinite(value):
+                raise ValueError
+            if value < minimum or (exclusive_min and value == minimum):
+                raise ValueError
+            if maximum is not None and value > maximum:
+                raise ValueError
+            return value
+        except (ValueError, OverflowError):
+            lower = "greater than" if exclusive_min else "at least"
+            upper = f" and at most {maximum}" if maximum is not None else ""
+            kind = "whole number" if integer else "number"
+            print(f"Enter a finite {kind} {lower} {minimum}{upper}.")
 
 
 def main():
@@ -55,27 +76,27 @@ def main():
             print("1. Beginner (2 sessions/week)")
             print("2. Intermediate (3 sessions/week)")
             print("3. Elite (5 sessions/week)")
-            plan = input("Choose training plan (1-3): ")
+            plan = input("Choose training plan (1-3): ").strip()
+            while plan not in ("1", "2", "3"):
+                print("Choose 1, 2 or 3.")
+                plan = input("Choose training plan (1-3): ").strip()
 
             # Calculate base training fee
             monthly_fee = get_training_fee(plan)
 
             # Get weight information
-            weight = float(input("Enter current weight in kg: "))
+            weight = read_number("Enter current weight in kg: ", exclusive_min=True)
             category = get_weight_category(weight)
 
             # Get competition entries (only for Intermediate and Elite)
             competitions = 0
             if plan != "1":  # Not beginner
-                competitions = int(input("Enter number of competitions this month: "))
+                competitions = read_number("Enter number of competitions this month: ", integer=True)
             else:
                 print("Note: Beginner athletes cannot enter competitions")
 
             # Get private coaching hours
-            coaching_hours = int(input("Enter private coaching hours this month: "))
-            if coaching_hours > 20:  # 5 hours per week * 4 weeks
-                print("Maximum 20 hours per month. Setting to 20.")
-                coaching_hours = 20
+            coaching_hours = read_number("Enter private coaching hours this month (0-20): ", maximum=20)
 
             # Calculate total fees
             coaching_fee = coaching_hours * PRIVATE_COACHING
@@ -92,20 +113,6 @@ def main():
             print(f"Total Monthly Fee: £{total_fee:.2f}")
             print(f"\nWeight Category: {category}")
 
-            # Compare weight with category
-            category_limits = {
-                "Flyweight": 66,
-                "Lightweight": 73,
-                "Light-Middleweight": 81,
-                "Middleweight": 90,
-                "Light-Heavyweight": 100,
-                "Heavyweight": float('inf')
-            }
-
-            if weight > category_limits[category]:
-                print(f"Warning: Current weight ({weight}kg) exceeds category limit!")
-            else:
-                print(f"Weight within category limit")
 
         else:
             print("Invalid choice. Please try again.")
